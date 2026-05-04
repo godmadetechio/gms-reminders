@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+# Railway will override startCommand per cron service in the dashboard.
+# See README for the 3 cron service commands to set up.
+startCommand = "node index.js"
+restartPolicyType = "never"
