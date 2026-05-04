@@ -19,7 +19,7 @@ if (!['3hr', '1hr', '5min'].includes(reminderType)) {
 
 // All calls at 6:00pm UK — one call per weekday
 const CALLS = {
-  1: { name: 'Discovery Mastery + Onboarding Call',   lead: 'Isaac / Rotating' },
+  1: { name: 'Discovery Mastery',   lead: 'Isaac / Rotating' },
   2: { name: 'Pitch Perfect + AMA',                   lead: 'Piotr'            },
   3: { name: 'Objection Handling Gauntlet / Closing', lead: 'Isaac'            },
   4: { name: 'Sales Training',                        lead: 'Jaka'             },
