@@ -4,8 +4,6 @@ const SLACK_TOKEN = process.env.SLACK_BOT_TOKEN;
 const CHANNEL_ID  = process.env.SLACK_CHANNEL_ID;
 const CALL_LINK   = 'https://ro.am/join/kgfonwwx-dbfqysjw';
 
-// Reminder type is passed as CLI arg by Railway cron
-// e.g.  node index.js 3hr   |   node index.js 1hr   |   node index.js 5min
 const reminderType = process.argv[2];
 
 if (!SLACK_TOKEN || !CHANNEL_ID) {
@@ -17,30 +15,34 @@ if (!['3hr', '1hr', '5min'].includes(reminderType)) {
   process.exit(1);
 }
 
-// All calls at 6:00pm UK — one call per weekday
+// Updated schedule — matches GMS Call Schedule
 const CALLS = {
-  1: { name: 'Discovery Mastery',   lead: 'Isaac / Rotating' },
-  2: { name: 'Pitch Perfect + AMA',                   lead: 'Piotr'            },
-  3: { name: 'Objection Handling Gauntlet / Closing', lead: 'Isaac'            },
-  4: { name: 'Sales Training',                        lead: 'Jaka'             },
-  5: { name: 'Hiring Call',                           lead: 'Jackson'          },
+  1: { name: 'Discovery Mastery',   lead: 'Isaac',        access: 'ALL'      },
+  2: { name: 'Sales Training',      lead: 'Jaka',         access: 'ALL'      },
+  3: { name: 'Objection Gauntlet',  lead: 'Isaac',        access: 'ALL'      },
+  4: { name: 'Hiring & Placement',  lead: 'Jackson',      access: 'ALL'      },
+  5: { name: 'Pitch Perfect + AMA', lead: 'Piotr',        access: 'ALL'      },
+  6: { name: 'Game Tape Day',       lead: 'Senior Coach', access: 'FOUNDERS' },
+  0: { name: 'Mindset & Health',    lead: 'Christian',    access: 'FOUNDERS' },
 };
 
 // Resolve today's day in UK time (Railway runs in UTC)
 const ukDateStr = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', weekday: 'short' });
-const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
-const ukDay  = dayMap[ukDateStr.trim().split(',')[0]] ?? dayMap[ukDateStr.trim()];
+const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+const ukDay  = dayMap[ukDateStr.trim()];
 
 const call = CALLS[ukDay];
 if (!call) {
-  console.log(`ℹ️  No GMS call today (UK day index: ${ukDay}). Nothing sent.`);
+  console.log(`ℹ️  No GMS call today. Nothing sent.`);
   process.exit(0);
 }
 
+const accessTag = call.access === 'FOUNDERS' ? ' *(Founders Club)*' : '';
+
 const MESSAGES = {
-  '3hr':  `⏰ *Reminder — 3 hours to go!*\n*${call.name}* kicks off at 6:00pm UK\nLead: ${call.lead}\n🔗 ${CALL_LINK}`,
-  '1hr':  `🔔 *1 hour left — get ready!*\n*${call.name}* starts at 6:00pm UK\nLead: ${call.lead}\n🔗 ${CALL_LINK}`,
-  '5min': `🚨 *5 MINUTES — WE ARE LIVE!* 🚨\n*${call.name}* is starting NOW\nLead: ${call.lead}\n👉 Jump in: ${CALL_LINK}`,
+  '3hr':  `⏰ *Reminder — 3 hours to go!*\n*${call.name}*${accessTag} kicks off at 6:00pm UK\nLead: ${call.lead}\n🔗 ${CALL_LINK}`,
+  '1hr':  `🔔 *1 hour left — get ready!*\n*${call.name}*${accessTag} starts at 6:00pm UK\nLead: ${call.lead}\n🔗 ${CALL_LINK}`,
+  '5min': `🚨 *5 MINUTES — WE ARE LIVE!* 🚨\n*${call.name}*${accessTag} is starting NOW\nLead: ${call.lead}\n👉 Jump in: ${CALL_LINK}`,
 };
 
 async function send() {
